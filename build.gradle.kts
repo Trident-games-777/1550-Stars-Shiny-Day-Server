@@ -6,6 +6,7 @@ plugins {
     kotlin("jvm") version "1.9.23"
     id("io.ktor.plugin") version "2.3.9"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.23"
+    application
 }
 
 group = "com.rainbowgames"
@@ -20,6 +21,10 @@ application {
 
 repositories {
     mavenCentral()
+}
+
+tasks {
+    create("stage").dependsOn("installDist")
 }
 
 dependencies {
@@ -37,8 +42,4 @@ dependencies {
     implementation("io.ktor:ktor-client-android:2.3.9")
     testImplementation("io.ktor:ktor-server-tests-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-}
-
-tasks {
-    create("stage").dependsOn("installDist")
 }
