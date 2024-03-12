@@ -1,1 +1,1 @@
-web: ./build/install/com.rainbowgames.rainbow/bin/com.rainbowgames.rainbow
+web: ./build/install/rainbow/bin/rainbow
