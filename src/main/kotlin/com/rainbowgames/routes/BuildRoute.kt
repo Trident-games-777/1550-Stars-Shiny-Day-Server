@@ -21,24 +21,18 @@ fun Route.createTempUrl() {
         val deeplink = call.parameters["container"]
         val userAgent = call.parameters["direction"]
 
-        println("googleAdId = $googleAdId")
-        val decodedGadid = googleAdId?.map { (it.code - 3).toChar() }?.joinToString("")
-        println("decodedGadid = $decodedGadid")
-
-        println("deeplink = $deeplink")
-        val decodedDeeplink = deeplink?.map { (it.code - 3).toChar() }?.joinToString("")
-        println("decodedDeeplink = $decodedDeeplink")
-
-        println("userAgent = $userAgent")
-        val decodedUserAgent = userAgent?.map { (it.code - 3).toChar() }?.joinToString("")
-        println("decodedUserAgent = $decodedUserAgent")
+        val decodedGadid = googleAdId?.decodeInput()
+        val decodedDeeplink = deeplink?.decodeInput()
+        val decodedUserAgent = userAgent?.decodeInput()
 
         val url = URLBuilder(
             protocol = URLProtocol.HTTPS,
             host = HOST,
             pathSegments = listOf(SEGMENT),
-            parameters = parametersOf(name = GADID_KEY, value = decodedGadid.toString()) +
-                    parametersOf(name = DEEPLINK_KEY, value = decodedDeeplink.toString())
+            parameters = parametersOf(
+                name = GADID_KEY,
+                value = decodedGadid.toString()
+            ) + parametersOf(name = DEEPLINK_KEY, value = decodedDeeplink.toString())
         ).build().toString()
 
         val takeVersion = decodedUserAgent?.split(" ")?.firstOrNull { it.startsWith("Version/") }.toString() + " "
@@ -46,27 +40,22 @@ fun Route.createTempUrl() {
 
         val encodingShift = (1..5).random()
         val word = buildString {
-            repeat(encodingShift){
+            repeat(encodingShift) {
                 append(('a'..'z').random())
             }
         }
         val encodedResponseUrl = url.map { (it.code - encodingShift).toChar() }.joinToString("")
         val encodedResponseUserAgent = newUserAgent.map { (it.code - encodingShift).toChar() }.joinToString("")
 
-        println("encodedResponseUrl = $encodedResponseUrl")
-        println("encodedResponseUserAgent = $encodedResponseUserAgent")
-        println("word = $word")
-
         call.respond(
-            HttpStatusCode.OK,
-            ResponseBuildString(
-                marker = url,
-                namespace = newUserAgent,
-                storm = word
+            HttpStatusCode.OK, ResponseBuildString(
+                marker = encodedResponseUrl, namespace = encodedResponseUserAgent, storm = word
             )
         )
     }
 }
+
+private fun String?.decodeInput(): String? = this?.map { (it.code - 3).toChar() }?.joinToString("")
 
 fun Route.settingsObject() {
     get("/miscellaneous") {
@@ -75,8 +64,4 @@ fun Route.settingsObject() {
 
             )
     }
-}
-
-fun Route.getUrl(){
-
 }
