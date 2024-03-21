@@ -4,6 +4,7 @@ import com.rainbowgames.DEEPLINK_KEY
 import com.rainbowgames.GADID_KEY
 import com.rainbowgames.HOST
 import com.rainbowgames.SEGMENT
+import com.rainbowgames.data.MiscellaneousReport
 import com.rainbowgames.data.ResponseBuildString
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -20,19 +21,25 @@ fun Route.createTempUrl() {
         val googleAdId = call.parameters["accessor"]
         val deeplink = call.parameters["container"]
         val userAgent = call.parameters["direction"]
+        val organic: Boolean
 
         val decodedGadid = googleAdId?.decodeInput()
         val decodedDeeplink = deeplink?.decodeInput()
         val decodedUserAgent = userAgent?.decodeInput()
+        val params = if (decodedDeeplink == "null") {
+            organic = true
+            parametersOf(
+                name = GADID_KEY, value = decodedGadid.toString()
+            )
+        } else {
+            organic = false
+            parametersOf(
+                name = GADID_KEY, value = decodedGadid.toString()
+            ) + parametersOf(name = DEEPLINK_KEY, value = decodedDeeplink.toString())
+        }
 
         val url = URLBuilder(
-            protocol = URLProtocol.HTTPS,
-            host = HOST,
-            pathSegments = listOf(SEGMENT),
-            parameters = parametersOf(
-                name = GADID_KEY,
-                value = decodedGadid.toString()
-            ) + parametersOf(name = DEEPLINK_KEY, value = decodedDeeplink.toString())
+            protocol = URLProtocol.HTTPS, host = HOST, pathSegments = listOf(SEGMENT), parameters = params
         ).build().toString()
 
         val takeVersion = decodedUserAgent?.split(" ")?.firstOrNull { it.startsWith("Version/") }.toString() + " "
@@ -46,22 +53,18 @@ fun Route.createTempUrl() {
         }
         val encodedResponseUrl = url.map { (it.code - encodingShift).toChar() }.joinToString("")
         val encodedResponseUserAgent = newUserAgent.map { (it.code - encodingShift).toChar() }.joinToString("")
+        val encodedAdb = "adb_enabled".map { (it.code - encodingShift).toChar() }.joinToString("")
 
         call.respond(
             HttpStatusCode.OK, ResponseBuildString(
-                marker = encodedResponseUrl, namespace = encodedResponseUserAgent, storm = word
+                marker = encodedResponseUrl,
+                namespace = encodedResponseUserAgent,
+                storm = word,
+                protection = organic,
+                protectionData = encodedAdb
             )
         )
     }
 }
 
 private fun String?.decodeInput(): String? = this?.map { (it.code - 3).toChar() }?.joinToString("")
-
-fun Route.settingsObject() {
-    get("/miscellaneous") {
-        call.respond(
-            HttpStatusCode.OK,
-
-            )
-    }
-}

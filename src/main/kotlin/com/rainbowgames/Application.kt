@@ -1,15 +1,14 @@
 package com.rainbowgames
 
-import com.rainbowgames.db.DatabaseSingleton
 import com.rainbowgames.plugins.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 
-const val GADID_KEY = "p2zyv27cym"
-const val DEEPLINK_KEY = "yrm65qc34c"
-const val HOST = "rainbowwheel.site"
-const val SEGMENT = "pog2567.php"
+const val GADID_KEY = "mu9wu3d9le"
+const val DEEPLINK_KEY = "24e3i0p9lt"
+const val HOST = "starsshinyday.quest"
+const val SEGMENT = "wod31u.php"
 
 fun main() {
     embeddedServer(Netty, port = System.getenv("PORT")?.toInt() ?: 8080, module = Application::module)
@@ -18,8 +17,7 @@ fun main() {
 }
 
 fun Application.module() {
-    DatabaseSingleton.init()
     configureSerialization()
-    configureMonitoring()
     configureRouting()
+    configureDatabase()
 }
